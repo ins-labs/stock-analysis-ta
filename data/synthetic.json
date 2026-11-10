@@ -1,0 +1,10 @@
+{
+  "dataset_kind": "synthetic",
+  "instrument": "INVENTED-40-NOT-A-SECURITY",
+  "source": "Invented deterministic prices authored for this public demonstration; not market observations",
+  "as_of": "2026-10-10T00:00:00+00:00",
+  "timezone": "UTC",
+  "price_basis": "invented close levels; no corporate actions or adjustments",
+  "currency": "arbitrary invented units",
+  "publication_rights": "Original synthetic data, dedicated to the public domain under CC0-1.0"
+}

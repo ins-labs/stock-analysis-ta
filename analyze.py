@@ -51,20 +51,20 @@ def load_input(csv_path, metadata_path):
     asof = datetime.fromisoformat(meta['as_of'])
     if asof.tzinfo is None or asof.utcoffset() is None:
         raise ValueError('as_of must contain a UTC offset')
-    reader = csv.DictReader(io.StringIO(raw.decode('utf-8-sig'), newline=''))
-    if reader.fieldnames != ['Date', 'Close']:
+    reader = csv.reader(io.StringIO(raw.decode('utf-8-sig'), newline=''), strict=True)
+    if next(reader, None) != ['Date', 'Close']:
         raise ValueError('CSV header must be exactly Date,Close')
     dates, closes = [], []
     for row in reader:
-        if set(row) != {'Date', 'Close'} or None in row.values():
-            raise ValueError('Malformed CSV row')
-        label = row['Date']
+        if len(row) != 2 or any(not cell.strip() for cell in row):
+            raise ValueError('Malformed or blank CSV row')
+        label = row[0]
         day = date.fromisoformat(label)
         if day.isoformat() != label or (dates and label <= dates[-1]):
             raise ValueError('Dates must be unique and strictly chronological ISO dates')
         if day > asof.astimezone(ZoneInfo(meta['timezone'])).date():
             raise ValueError('Input date is later than declared as_of in dataset timezone')
-        close = float(row['Close'])
+        close = float(row[1])
         if not math.isfinite(close) or close <= 0:
             raise ValueError('Every close must be positive and finite; no fill or drop')
         dates.append(label)
@@ -132,7 +132,7 @@ def main(argv=None):
     args = parser().parse_args(argv)
     try:
         run(args)
-    except (ValueError, OSError, KeyError, TypeError, OverflowError) as exc:
+    except (ValueError, OSError, KeyError, TypeError, OverflowError, csv.Error) as exc:
         print('Analysis rejected: ' + str(exc), file=sys.stderr)
         return 2
     return 0

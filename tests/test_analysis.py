@@ -98,6 +98,14 @@ class InputTests(unittest.TestCase):
             self.csv.write_text(content)
             with self.subTest(content=content),self.assertRaises(ValueError): analyze.load_input(self.csv,self.meta)
 
+    def test_blank_records_refused_but_final_newline_valid(self):
+        base = 'Date,Close\n2026-01-01,100\n2026-01-02,101\n'
+        self.csv.write_text(base)
+        self.assertEqual(len(analyze.load_input(self.csv,self.meta)[0]),2)
+        for text in [base+'\n', base.replace('2026-01-02','\n2026-01-02'), base+'   \n',base+'"",""\n']:
+            self.csv.write_text(text)
+            with self.subTest(text=text),self.assertRaises(ValueError): analyze.load_input(self.csv,self.meta)
+
     def test_dates_duplicate_unsorted_invalid_future(self):
         for dates in [('2026-01-02','2026-01-01'),('2026-01-01','2026-01-01'),('2026-02-30','2026-03-01'),('20260101','2026-01-02'),('2027-01-01','2027-01-02')]:
             self.csv.write_text('Date,Close\n'+dates[0]+',100\n'+dates[1]+',101\n')
